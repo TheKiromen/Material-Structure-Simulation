@@ -21,6 +21,7 @@ def cellular_automata_Von_Neuman():
     current_state = np.zeros((simulation_height, simulation_width), np.int8)
 
     # 2. Create random nucleation sites
+    # TODO FIX change boundary conditions?
     created_seeds = 0
     while created_seeds != number_of_nucleation_sites:
         # Pick random index x and y index
@@ -39,9 +40,13 @@ def cellular_automata_Von_Neuman():
     # 3. Go through the simulation loop until all cells are filled
     while np.count_nonzero(current_state) != current_state.size:
         # Perform single step of the simulation
+        # TODO FIX, omit boundaries then looping
         for y in range(simulation_height):
             for x in range(simulation_width):
                 if current_state[y, x] == 0:
+                    # TODO FIX IT, cell should pick value based on most popular neighbour,
+                    #  if multiple have the same value, pick at random
+                    # TODO modify it to be able to use different types of neighbourhoods
                     # Check above
                     if y != 0:
                         if current_state[y-1, x] != 0:
@@ -77,6 +82,7 @@ def monte_carlo():
     next_state = np.copy(current_state)
 
     # Create list of index pairs (x,y)
+    # TODO FIX, omit boundaries?
     indexes = list(itertools.product(np.arange(simulation_width), np.arange(simulation_height)))
 
     # TODO infinite loop here
