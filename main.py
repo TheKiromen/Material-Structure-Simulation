@@ -14,12 +14,19 @@ simulation_height = 10
 number_of_grain_types = 9
 # How many nucleation sites (default 3% of whole simulation)
 number_of_nucleation_sites = int((simulation_width * simulation_height * 0.03))
+# Determines if neighbourhood should be accessed at random
+random = False
+# Neighbourhood types, stored as array of offsets from current cell (x, y)
+von_neuman = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 
 
-def cellular_automata_Von_Neuman():
-    # 1. Create empty simulation
+def cellular_automata():
+    # 1. Simulation setup
+    # Create empty simulation
     current_state = np.zeros((simulation_height, simulation_width), np.int8)
-
+    # Choose neighbourhood to use
+    neighbourhood = np.copy(von_neuman)
+    
     # 2. Create random nucleation sites
     # TODO FIX change boundary conditions?
     created_seeds = 0
@@ -47,26 +54,38 @@ def cellular_automata_Von_Neuman():
                     # TODO FIX IT, cell should pick value based on most popular neighbour,
                     #  if multiple have the same value, pick at random
                     # TODO modify it to be able to use different types of neighbourhoods
-                    # Check above
-                    if y != 0:
-                        if current_state[y-1, x] != 0:
-                            next_state[y, x] = current_state[y-1, x]
-                            continue
-                    # Check to the right
-                    if x != simulation_width-1:
-                        if current_state[y, x+1] != 0:
-                            next_state[y, x] = current_state[y, x+1]
-                            continue
-                    # Check below
-                    if y != simulation_height-1:
-                        if current_state[y+1, x] != 0:
-                            next_state[y, x] = current_state[y+1, x]
-                            continue
-                    # Check to the left
-                    if x != 0:
-                        if current_state[y, x-1] != 0:
-                            next_state[y, x] = current_state[y, x-1]
-                            continue
+                    # If neighbourhood should be randomly accessed, shuffle the list
+                    if random:
+                        np.random.shuffle(neighbourhood)
+
+                    # TODO Loop to check through whole neighbourhood
+                        # TODO if we hit non 0 cell, increase its counter
+
+                    # TODO pick the cell with the highest counter, if many have the same, pick at random
+                        # TODO use map, where key is grain ID, value is number of occurrences
+                        # TODO find max value from map
+                        # TODO remove all entries where value is not max?
+                        # TODO https://thispointer.com/delete-elements-from-a-numpy-array-by-value-or-conditions-in-python/
+                    # # Check above
+                    # if y != 0:
+                    #     if current_state[y-1, x] != 0:
+                    #         next_state[y, x] = current_state[y-1, x]
+                    #         continue
+                    # # Check to the right
+                    # if x != simulation_width-1:
+                    #     if current_state[y, x+1] != 0:
+                    #         next_state[y, x] = current_state[y, x+1]
+                    #         continue
+                    # # Check below
+                    # if y != simulation_height-1:
+                    #     if current_state[y+1, x] != 0:
+                    #         next_state[y, x] = current_state[y+1, x]
+                    #         continue
+                    # # Check to the left
+                    # if x != 0:
+                    #     if current_state[y, x-1] != 0:
+                    #         next_state[y, x] = current_state[y, x-1]
+                    #         continue
 
         # Advance to next step in simulation
         current_state = np.copy(next_state)
@@ -111,6 +130,6 @@ def monte_carlo():
 
 
 # --------------------------------- Main program  --------------------------------- #
-cellular_automata_Von_Neuman()
+cellular_automata()
 
 # monte_carlo()
