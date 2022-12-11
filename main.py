@@ -14,13 +14,17 @@ simulation_height = 10
 number_of_grain_types = 9
 # How many nucleation sites (default 3% of whole simulation)
 number_of_nucleation_sites = int((simulation_width * simulation_height * 0.03))
+# Spacing for periodic generation
+x_step = int(simulation_width*0.1)
+y_step = int(simulation_height*0.2)
 # Determine if random nucleation sites should be used
 random_nucleation_sites = True
 # Determine if edges should be absorbing or periodic
 absorbing = False
 # Neighbourhood types, stored as array of offsets from current cell (x, y)
-neighbourhood_type = "VN"
-von_neuman = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+# Possible neighbourhoods are: VN = Von Neuman, Hex = Random Hexagonal
+neighbourhood_type = "Hex"
+von_neuman = [[(0, -1), (1, 0), (0, 1), (-1, 0)]]
 hexagonal = [[(0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1)], [(-1, -1), (0, -1), (-1, 0), (1, 0), (0, 1), (1, 1)]]
 
 
@@ -43,10 +47,8 @@ def cellular_automata():
     # Choose neighbourhood to use
     if neighbourhood_type == "Hex":
         neighbourhood = np.copy(hexagonal)
-        random_neighbourhood = True
     else:
         neighbourhood = np.copy(von_neuman)
-        random_neighbourhood = False
 
     # 2. Create random nucleation sites
     # Generate random nucleation sites
@@ -63,21 +65,22 @@ def cellular_automata():
 
     # Generate periodic nucleation sites
     else:
-        for y in range(1, simulation_height-1, 3):
-            for x in range(1, int(simulation_width/3), 3):
+        for y in range(1, simulation_height-1, y_step):
+            for x in range(1, simulation_width, x_step):
                 current_state[y, x] = np.random.randint(1, number_of_grain_types + 1)
 
     # Copy current state to temporary array
     next_state = np.copy(current_state)
 
+    # FIXME Remove in prod
+    # Displays current simulation state
     print(current_state)
 
     # 3. Go through eth simulation loop until all cells are filled
     # Determine the end goal
     if absorbing:
         # If boundaries are absorbing, the goal is to have non-zero values everywhere but at the edges
-        # TODO check if it calculates properly
-        goal = current_state.size - (simulation_width*2 + (simulation_height-1)*2)
+        goal = (simulation_width - 2) * (simulation_height - 2)
     else:
         # If boundaries are periodic, the goal is to have full simulation filled, that is no zeros at all
         goal = current_state.size
@@ -85,51 +88,53 @@ def cellular_automata():
     # Go through the simulation
     while np.count_nonzero(current_state) != goal:
         # Perform single step of the simulation
-        # TODO FIX, omit boundaries then looping
         for y in range(start_y, end_y):
             for x in range(start_x, end_x):
                 if current_state[y, x] == 0:
-                    # TODO FIX IT, cell should pick value based on most popular neighbour,
-                    #  if multiple have the same value, pick at random
-                    # TODO modify it to be able to use different types of neighbourhoods
-                    # If neighbourhood should be randomly accessed, shuffle the list
-                    if random:
-                        np.random.shuffle(neighbourhood)
 
-                    # TODO Loop to check through whole neighbourhood
-                        # TODO if we hit non 0 cell, increase its counter
+                    # Initialize the counter
+                    counter = np.zeros(number_of_grain_types+1, np.int8)
 
-                    # TODO pick the cell with the highest counter, if many have the same, pick at random
-                        # TODO use map, where key is grain ID, value is number of occurrences
-                        # TODO find max value from map
-                        # TODO remove all entries where value is not max?
-                        # TODO https://thispointer.com/delete-elements-from-a-numpy-array-by-value-or-conditions-in-python/
-                    # Check above
-                    if y != 0:
-                        if current_state[y-1, x] != 0:
-                            next_state[y, x] = current_state[y-1, x]
-                            continue
-                    # Check to the right
-                    if x != simulation_width-1:
-                        if current_state[y, x+1] != 0:
-                            next_state[y, x] = current_state[y, x+1]
-                            continue
-                    # Check below
-                    if y != simulation_height-1:
-                        if current_state[y+1, x] != 0:
-                            next_state[y, x] = current_state[y+1, x]
-                            continue
-                    # Check to the left
-                    if x != 0:
-                        if current_state[y, x-1] != 0:
-                            next_state[y, x] = current_state[y, x-1]
-                            continue
+                    # Randomize the neighbourhood
+                    current_neighbourhood = neighbourhood[np.random.randint(0, len(neighbourhood))]
+
+                    # Loop through the neighbourhood
+                    for offset in current_neighbourhood:
+                        # Calculate neighbour coordinates
+                        new_x = x + offset[0]
+                        new_y = y + offset[1]
+
+                        # Check for boundaries
+                        if new_x < 0:
+                            new_x = new_x + simulation_width
+                        if new_x >= simulation_width:
+                            new_x = 0
+                        if new_y < 0:
+                            new_y = new_y + simulation_height
+                        if new_y >= simulation_height:
+                            new_y = 0
+
+                        # Increase the counter
+                        counter[current_state[new_y, new_x]] += 1
+
+                    # Clear out the zero's
+                    counter[0] = 0
+                    # Get number of most occurrences
+                    maximum = np.amax(counter)
+                    # Find what are the most common neighbours
+                    if maximum != 0:
+                        indexes = np.where(counter == maximum)[0]
+                    else:
+                        indexes = [0]
+                    # Pick one at random
+                    grain_id = np.random.randint(indexes[0], indexes[len(indexes)-1]+1)
+                    next_state[y, x] = grain_id
 
         # Advance to next step in simulation
         current_state = np.copy(next_state)
-
-    # Display final result
-    print("CA: \n", current_state)
+        # FIXME remove in prod
+        # Prints each step of the simulation
+        print(current_state, "\n")
 
 
 def monte_carlo():
