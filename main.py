@@ -1,5 +1,4 @@
 import itertools
-import random
 from abaqus import *
 from abaqusConstants import *
 from driverUtils import *
@@ -10,6 +9,8 @@ import numpy as np
 # Simulation size: 300x300
 simulation_width = 30
 simulation_height = 10
+# Simulation step limit for Monte Carlo method
+step_limit = 10
 # How many grain types there are
 number_of_grain_types = 9
 # How many nucleation sites (default 3% of whole simulation)
@@ -138,41 +139,79 @@ def cellular_automata():
 
 
 def monte_carlo():
-    # 1. Randomize initial structure
-    current_state = np.random.randint(1, number_of_grain_types + 1, (simulation_height, simulation_width))
-    # Copy initial simulation state
+    # 1. Simulation setup
+    # Create empty simulation
+    current_state = np.zeros((simulation_height, simulation_width), np.int8)
+    # Determine area to traverse based on edge type
+    if absorbing:
+        start_x = 1
+        start_y = 1
+        end_x = simulation_width - 1
+        end_y = simulation_height - 1
+    else:
+        start_x = 0
+        start_y = 0
+        end_x = simulation_width
+        end_y = simulation_height
+
+    # Create indexes for all cells in the simulation
+    indexes = list(itertools.product(np.arange(start_x, end_x), np.arange(start_y, end_y)))
+
+    # Choose neighbourhood to use
+    if neighbourhood_type == "Hex":
+        neighbourhood = np.copy(hexagonal)
+    else:
+        neighbourhood = np.copy(von_neuman)
+
+    # 2. Create random nucleation sites
+    # Generate random nucleation sites
+    if random_nucleation_sites:
+        current_state = np.random.randint(1, number_of_grain_types+1, (simulation_height, simulation_width))
+
+    # Generate periodic nucleation sites
+    else:
+        i = 0
+        for y in range(simulation_height):
+            for x in range(simulation_width):
+                current_state[y, x] = (i % number_of_grain_types) + 1
+                i += 1
+
+    # Determine the border type
+    if absorbing:
+        current_state[0, :] = 0
+        current_state[simulation_height-1, :] = 0
+        current_state[:, 0] = 0
+        current_state[:, simulation_width-1] = 0
+
+    # Copy current state to temporary array
     next_state = np.copy(current_state)
 
-    # Create list of index pairs (x,y)
-    # TODO FIX, omit boundaries?
-    indexes = list(itertools.product(np.arange(simulation_width), np.arange(simulation_height)))
+    # FIXME Remove in prod
+    # Displays current simulation state
+    print(current_state)
 
-    # TODO infinite loop here
+    # Go through the simulation
+    for step in range(step_limit):
+        # FIXME check if it returns all valid indexes
+        # Randomise index order
+        np.random.shuffle(indexes)
+        # Loop through the whole simulation
+        for index in indexes:
+            # TODO calculate cell energy (ignore zero's at boundaries?)
+            # TODO switch to random state from neighbourhood
+            # TODO calculate new energy
+            # TODO calculate probability of change
+            # TODO try to change state
+            print(index)
 
-    # Shuffle the list
-    random.shuffle(indexes)
-    # Go through the whole list
-    for index in indexes:
-        print(index)
-        # TODO 3. Calculate cell energy
-        # Calculate energy of the selected cell
-
-        # TODO 4. Change cell state to random one from its neighbourhood
-
-        # TODO 5. Calculate new energy
-
-        # TODO 6. Decide to keep the change based on probability
-        # Probability 1 if new energy is smaller
-        # Probability exp(-energy diff/kt) if new energy is bigger
-
-    current_state = np.copy(next_state)
-    # TODO end of main loop here
-
-    # Show to result
-    print("MC: \n", current_state)
+        # Advance to next step in simulation
+        current_state = np.copy(next_state)
+        # FIXME remove in prod
+        # Prints each step of the simulation
+        print(current_state, "\n")
 
 
 # --------------------------------- Main program  --------------------------------- #
-cellular_automata()
+# cellular_automata()
 
-# monte_carlo()
+monte_carlo()
