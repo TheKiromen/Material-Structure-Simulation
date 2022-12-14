@@ -4,27 +4,28 @@ from abaqusConstants import *
 from driverUtils import *
 import numpy as np
 
-
 # Variables
 # Simulation size: 300x300
 simulation_width = 30
 simulation_height = 10
 # Simulation step limit for Monte Carlo method
-step_limit = 10
+step_limit = 1000
+# Constant for cell change probability
+kt = 0.5
 # How many grain types there are
 number_of_grain_types = 9
 # How many nucleation sites (default 3% of whole simulation)
 number_of_nucleation_sites = int((simulation_width * simulation_height * 0.03))
 # Spacing for periodic generation
-x_step = int(simulation_width*0.1)
-y_step = int(simulation_height*0.2)
+x_step = int(simulation_width * 0.1)
+y_step = int(simulation_height * 0.2)
 # Determine if random nucleation sites should be used
 random_nucleation_sites = True
 # Determine if edges should be absorbing or periodic
 absorbing = False
 # Neighbourhood types, stored as array of offsets from current cell (x, y)
 # Possible neighbourhoods are: VN = Von Neuman, Hex = Random Hexagonal
-neighbourhood_type = "Hex"
+neighbourhood_type = "VN"
 von_neuman = [[(0, -1), (1, 0), (0, 1), (-1, 0)]]
 hexagonal = [[(0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1)], [(-1, -1), (0, -1), (-1, 0), (1, 0), (0, 1), (1, 1)]]
 
@@ -37,8 +38,8 @@ def cellular_automata():
     if absorbing:
         start_x = 1
         start_y = 1
-        end_x = simulation_width-1
-        end_y = simulation_height-1
+        end_x = simulation_width - 1
+        end_y = simulation_height - 1
     else:
         start_x = 0
         start_y = 0
@@ -66,7 +67,7 @@ def cellular_automata():
 
     # Generate periodic nucleation sites
     else:
-        for y in range(1, simulation_height-1, y_step):
+        for y in range(1, simulation_height - 1, y_step):
             for x in range(1, simulation_width, x_step):
                 current_state[y, x] = np.random.randint(1, number_of_grain_types + 1)
 
@@ -94,7 +95,7 @@ def cellular_automata():
                 if current_state[y, x] == 0:
 
                     # Initialize the counter
-                    counter = np.zeros(number_of_grain_types+1, np.int8)
+                    counter = np.zeros(number_of_grain_types + 1, np.int8)
 
                     # Randomize the neighbourhood
                     current_neighbourhood = neighbourhood[np.random.randint(0, len(neighbourhood))]
@@ -128,7 +129,7 @@ def cellular_automata():
                     else:
                         indexes = [0]
                     # Pick one at random
-                    grain_id = np.random.randint(indexes[0], indexes[len(indexes)-1]+1)
+                    grain_id = np.random.randint(indexes[0], indexes[len(indexes) - 1] + 1)
                     next_state[y, x] = grain_id
 
         # Advance to next step in simulation
@@ -166,7 +167,7 @@ def monte_carlo():
     # 2. Create random nucleation sites
     # Generate random nucleation sites
     if random_nucleation_sites:
-        current_state = np.random.randint(1, number_of_grain_types+1, (simulation_height, simulation_width))
+        current_state = np.random.randint(1, number_of_grain_types + 1, (simulation_height, simulation_width))
 
     # Generate periodic nucleation sites
     else:
@@ -179,9 +180,9 @@ def monte_carlo():
     # Determine the border type
     if absorbing:
         current_state[0, :] = 0
-        current_state[simulation_height-1, :] = 0
+        current_state[simulation_height - 1, :] = 0
         current_state[:, 0] = 0
-        current_state[:, simulation_width-1] = 0
+        current_state[:, simulation_width - 1] = 0
 
     # Copy current state to temporary array
     next_state = np.copy(current_state)
@@ -192,23 +193,62 @@ def monte_carlo():
 
     # Go through the simulation
     for step in range(step_limit):
-        # FIXME check if it returns all valid indexes
         # Randomise index order
         np.random.shuffle(indexes)
         # Loop through the whole simulation
         for index in indexes:
-            # TODO calculate cell energy (ignore zero's at boundaries?)
-            # TODO switch to random state from neighbourhood
-            # TODO calculate new energy
-            # TODO calculate probability of change
-            # TODO try to change state
-            print(index)
+
+            # Initialize the counter
+            counter = np.zeros(number_of_grain_types + 1, np.int8)
+
+            # Randomize the neighbourhood
+            current_neighbourhood = neighbourhood[np.random.randint(0, len(neighbourhood))]
+
+            # Loop through the neighbours
+            for offset in current_neighbourhood:
+                # Calculate neighbour coordinates
+                new_x = index[0] + offset[0]
+                new_y = index[1] + offset[1]
+
+                # Check for boundaries
+                if new_x < 0:
+                    new_x = new_x + simulation_width
+                if new_x >= simulation_width:
+                    new_x = 0
+                if new_y < 0:
+                    new_y = new_y + simulation_height
+                if new_y >= simulation_height:
+                    new_y = 0
+
+                # Increase the counter
+                counter[current_state[new_y, new_x]] += 1
+
+            # Clear out the zero's
+            counter[0] = 0
+            # Get energy for current cell
+            current_energy = counter[current_state[index[1], index[0]]]
+            # Remove all elements that are not in neighbourhood
+            candidates = np.where(counter != 0)[0]
+            # Get new energy for random cell change
+            candidate = candidates[np.random.randint(0, candidates.size)]
+            new_energy = counter[candidate]
+            # Calculate energy difference
+            energy_difference = new_energy - current_energy
+
+            # Pick new cell based on energy
+            if energy_difference > 0:
+                probability = np.exp(-energy_difference / kt)
+                if np.random.random() < probability:
+                    next_state[index[1], index[0]] = candidate
+            else:
+                next_state[index[1], index[0]] = candidate
 
         # Advance to next step in simulation
         current_state = np.copy(next_state)
         # FIXME remove in prod
         # Prints each step of the simulation
-        print(current_state, "\n")
+        # print(current_state, "\n")
+    print("\n", current_state)
 
 
 # --------------------------------- Main program  --------------------------------- #
