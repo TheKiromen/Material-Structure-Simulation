@@ -13,10 +13,10 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
               (0, 0, 255), (255, 0, 255), (125, 125, 255), (125, 255, 125), (255, 125, 125)]
     # Variables
     # Simulation size: 300x300
-    simulation_width = 30
-    simulation_height = 30
+    simulation_width = 100
+    simulation_height = 100
     # Simulation step limit for Monte Carlo method
-    step_limit = 100
+    step_limit = 10
     # Constant for cell change probability
     kt = 0.2
     # How many grain types there are
@@ -80,8 +80,6 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
 
         # Copy current state to temporary array
         next_state = np.copy(current_state)
-        # FIXME
-        print(current_state, "\n")
         # 3. Go through eth simulation loop until all cells are filled
         # Determine the end goal
         if absorbing:
@@ -133,21 +131,18 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
                         else:
                             indexes = [0]
                         # Pick one at random
-                        # FIXME find out why it picks nonexistent neighbour
-                        grain_id = np.random.randint(indexes[0], indexes[len(indexes) - 1] + 1)
-                        next_state[y, x] = grain_id
+                        np.random.shuffle(indexes)
+                        next_state[y, x] = indexes[0]
 
             # Advance to next step in simulation
             current_state = np.copy(next_state)
-            # FIXME
-            print(current_state, "\n")
 
         return current_state
 
     def monte_carlo(initial_state):
         # 1. Simulation setup
         # Start from initial state
-        current_state = initial_state
+        current_state = np.copy(initial_state)
         # Determine area to traverse based on edge type
         if absorbing:
             start_x = 1
@@ -252,26 +247,42 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
         return current_state
 
     # --------------------------------- Main program  --------------------------------- #
+    # Determine what algorithm to use
+    # Cellular Automata
     if algorithm == "CA":
         output = cellular_automata()
+    # Monte Carlo
     elif algorithm == "MC":
+        # Determine if there should be input to Monte Carlo method
+        # Generate empy simulation
         if from_empty_simulation:
             input_state = np.zeros((simulation_height, simulation_width), np.int8)
+        # Generate simulation from CA input
         else:
+            # Generate the input
             input_state = cellular_automata()
+        # Perform the MC simulation
         output = monte_carlo(input_state)
     else:
         print("Invalid algorithm")
-        output = np.zeros((3,3), np.int8)
+        return
 
-    # Generate output image
-    image = Image.new("RGB", (simulation_width, simulation_height))
-    pixels = image.load()
+    # Generate images
+    output_image = Image.new("RGB", (simulation_width, simulation_height))
+    output_pixels = output_image.load()
+    initial_image = Image.new("RGB", (simulation_width, simulation_height))
+    initial_pixels = initial_image.load()
+    # Loop through the whole image
     for img_y in range(simulation_height):
         for img_x in range(simulation_width):
-            pixels[img_x, img_y] = colors[output[img_y, img_x]]
-    image = image.resize((simulation_width * 5, simulation_height * 5), Image.NEAREST)
-    image.save('Output.png')
+            # Assign color to each pixel
+            output_pixels[img_x, img_y] = colors[output[img_y, img_x]]
+            initial_pixels[img_x, img_y] = colors[input_state[img_y, img_x]]
+    # Save resulting images
+    output_image = output_image.resize((simulation_width * 5, simulation_height * 5), Image.NEAREST)
+    output_image.save('Output.png')
+    initial_image = initial_image.resize((simulation_width * 5, simulation_height * 5), Image.NEAREST)
+    initial_image.save('Input.png')
 
 
-generate_microstructure("CA", True, True, "VN", True)
+generate_microstructure("MC", True, False, "VN", False)
