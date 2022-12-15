@@ -9,9 +9,9 @@ import numpy as np
 simulation_width = 30
 simulation_height = 10
 # Simulation step limit for Monte Carlo method
-step_limit = 1000
+step_limit = 10
 # Constant for cell change probability
-kt = 0.5
+kt = 0.2
 # How many grain types there are
 number_of_grain_types = 9
 # How many nucleation sites (default 3% of whole simulation)
@@ -25,7 +25,7 @@ random_nucleation_sites = True
 absorbing = False
 # Neighbourhood types, stored as array of offsets from current cell (x, y)
 # Possible neighbourhoods are: VN = Von Neuman, Hex = Random Hexagonal
-neighbourhood_type = "VN"
+neighbourhood_type = "Hex"
 von_neuman = [[(0, -1), (1, 0), (0, 1), (-1, 0)]]
 hexagonal = [[(0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1)], [(-1, -1), (0, -1), (-1, 0), (1, 0), (0, 1), (1, 1)]]
 
@@ -197,7 +197,6 @@ def monte_carlo():
         np.random.shuffle(indexes)
         # Loop through the whole simulation
         for index in indexes:
-
             # Initialize the counter
             counter = np.zeros(number_of_grain_types + 1, np.int8)
 
@@ -226,12 +225,12 @@ def monte_carlo():
             # Clear out the zero's
             counter[0] = 0
             # Get energy for current cell
-            current_energy = counter[current_state[index[1], index[0]]]
+            current_energy = current_neighbourhood.size - counter[current_state[index[1], index[0]]]
             # Remove all elements that are not in neighbourhood
             candidates = np.where(counter != 0)[0]
             # Get new energy for random cell change
             candidate = candidates[np.random.randint(0, candidates.size)]
-            new_energy = counter[candidate]
+            new_energy = current_neighbourhood.size - counter[candidate]
             # Calculate energy difference
             energy_difference = new_energy - current_energy
 
@@ -247,8 +246,7 @@ def monte_carlo():
         current_state = np.copy(next_state)
         # FIXME remove in prod
         # Prints each step of the simulation
-        # print(current_state, "\n")
-    print("\n", current_state)
+        print(current_state, "\n")
 
 
 # --------------------------------- Main program  --------------------------------- #
