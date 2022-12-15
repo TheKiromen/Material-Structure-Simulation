@@ -5,7 +5,7 @@ import itertools
 import numpy as np
 
 
-def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neighbourhood_type):
+def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neighbourhood_type, from_empty_simulation):
     # Variables
     # Simulation size: 300x300
     simulation_width = 30
@@ -140,10 +140,12 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
             # Prints each step of the simulation
             print(current_state, "\n")
 
-    def monte_carlo():
+        return current_state
+
+    def monte_carlo(initial_state):
         # 1. Simulation setup
-        # Create empty simulation
-        current_state = np.zeros((simulation_height, simulation_width), np.int8)
+        # Start from initial state
+        current_state = initial_state
         # Determine area to traverse based on edge type
         if absorbing:
             start_x = 1
@@ -165,18 +167,19 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
         else:
             neighbourhood = np.copy(von_neuman)
 
-        # 2. Create random nucleation sites
-        # Generate random nucleation sites
-        if random_nucleation_sites:
-            current_state = np.random.randint(1, number_of_grain_types + 1, (simulation_height, simulation_width))
+        # 2. If empty simulation, Create random nucleation sites
+        if np.count_nonzero(current_state) == 0:
+            # Generate random nucleation sites
+            if random_nucleation_sites:
+                current_state = np.random.randint(1, number_of_grain_types + 1, (simulation_height, simulation_width))
 
-        # Generate periodic nucleation sites
-        else:
-            i = 0
-            for y in range(simulation_height):
-                for x in range(simulation_width):
-                    current_state[y, x] = (i % number_of_grain_types) + 1
-                    i += 1
+            # Generate periodic nucleation sites
+            else:
+                i = 0
+                for y in range(simulation_height):
+                    for x in range(simulation_width):
+                        current_state[y, x] = (i % number_of_grain_types) + 1
+                        i += 1
 
         # Determine the border type
         if absorbing:
@@ -252,13 +255,19 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
             # Prints each step of the simulation
             print(current_state, "\n")
 
+        return current_state
+
     # --------------------------------- Main program  --------------------------------- #
     if algorithm == "CA":
         cellular_automata()
     elif algorithm == "MC":
-        monte_carlo()
+        if from_empty_simulation:
+            input_state = np.zeros((simulation_height, simulation_width), np.int8)
+        else:
+            input_state = cellular_automata()
+        monte_carlo(input_state)
     else:
         print("Invalid algorithm")
 
 
-generate_microstructure("MC", True, False, "Hex")
+generate_microstructure("MC", True, False, "Hex", False)
