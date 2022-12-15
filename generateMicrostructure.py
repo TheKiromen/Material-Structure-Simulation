@@ -1,4 +1,6 @@
 import itertools
+
+from PIL import Image
 # from abaqus import *
 # from abaqusConstants import *
 # from driverUtils import *
@@ -6,12 +8,15 @@ import numpy as np
 
 
 def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neighbourhood_type, from_empty_simulation):
+    # Image color schema in RGB format
+    colors = [(0, 0, 0), (255, 0, 0), (255, 255, 0), (0, 255, 0), (0, 255, 255),
+              (0, 0, 255), (255, 0, 255), (125, 125, 255), (125, 255, 125), (255, 125, 125)]
     # Variables
     # Simulation size: 300x300
     simulation_width = 30
-    simulation_height = 10
+    simulation_height = 30
     # Simulation step limit for Monte Carlo method
-    step_limit = 10
+    step_limit = 100
     # Constant for cell change probability
     kt = 0.2
     # How many grain types there are
@@ -75,11 +80,8 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
 
         # Copy current state to temporary array
         next_state = np.copy(current_state)
-
-        # FIXME Remove in prod
-        # Displays current simulation state
-        print(current_state)
-
+        # FIXME
+        print(current_state, "\n")
         # 3. Go through eth simulation loop until all cells are filled
         # Determine the end goal
         if absorbing:
@@ -131,13 +133,13 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
                         else:
                             indexes = [0]
                         # Pick one at random
+                        # FIXME find out why it picks nonexistent neighbour
                         grain_id = np.random.randint(indexes[0], indexes[len(indexes) - 1] + 1)
                         next_state[y, x] = grain_id
 
             # Advance to next step in simulation
             current_state = np.copy(next_state)
-            # FIXME remove in prod
-            # Prints each step of the simulation
+            # FIXME
             print(current_state, "\n")
 
         return current_state
@@ -190,10 +192,6 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
 
         # Copy current state to temporary array
         next_state = np.copy(current_state)
-
-        # FIXME Remove in prod
-        # Displays current simulation state
-        print(current_state)
 
         # Go through the simulation
         for step in range(step_limit):
@@ -251,23 +249,29 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
 
             # Advance to next step in simulation
             current_state = np.copy(next_state)
-            # FIXME remove in prod
-            # Prints each step of the simulation
-            print(current_state, "\n")
-
         return current_state
 
     # --------------------------------- Main program  --------------------------------- #
     if algorithm == "CA":
-        cellular_automata()
+        output = cellular_automata()
     elif algorithm == "MC":
         if from_empty_simulation:
             input_state = np.zeros((simulation_height, simulation_width), np.int8)
         else:
             input_state = cellular_automata()
-        monte_carlo(input_state)
+        output = monte_carlo(input_state)
     else:
         print("Invalid algorithm")
+        output = np.zeros((3,3), np.int8)
+
+    # Generate output image
+    image = Image.new("RGB", (simulation_width, simulation_height))
+    pixels = image.load()
+    for img_y in range(simulation_height):
+        for img_x in range(simulation_width):
+            pixels[img_x, img_y] = colors[output[img_y, img_x]]
+    image = image.resize((simulation_width * 5, simulation_height * 5), Image.NEAREST)
+    image.save('Output.png')
 
 
-generate_microstructure("MC", True, False, "Hex", False)
+generate_microstructure("CA", True, True, "VN", True)
