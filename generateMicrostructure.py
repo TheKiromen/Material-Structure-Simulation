@@ -9,7 +9,7 @@ import numpy as np
 
 def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neighbourhood_type, from_empty_simulation):
     # Image color schema in RGB format
-    colors = [(0, 0, 0), (255, 0, 0), (255, 255, 0), (0, 255, 0), (0, 255, 255),
+    colors = [(0, 0, 0), (255, 0, 0), (0, 255, 0), (255, 255, 0), (0, 255, 255),
               (0, 0, 255), (255, 0, 255), (125, 125, 255), (125, 255, 125), (255, 125, 125)]
     # Variables
     # Simulation size: 300x300
@@ -20,9 +20,9 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
     # Constant for cell change probability
     kt = 0.2
     # How many grain types there are
-    number_of_grain_types = 9
+    number_of_grain_types = 2
     # How many nucleation sites (default 3% of whole simulation)
-    number_of_nucleation_sites = int((simulation_width * simulation_height * 0.03))
+    number_of_nucleation_sites = int((simulation_width * simulation_height * 0.01))
     # Spacing for periodic generation
     x_step = int(simulation_width * 0.1)
     y_step = int(simulation_height * 0.2)
@@ -251,6 +251,7 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
     # Cellular Automata
     if algorithm == "CA":
         output = cellular_automata()
+        input_state = np.copy(output)
     # Monte Carlo
     elif algorithm == "MC":
         # Determine if there should be input to Monte Carlo method
@@ -279,10 +280,11 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
             output_pixels[img_x, img_y] = colors[output[img_y, img_x]]
             initial_pixels[img_x, img_y] = colors[input_state[img_y, img_x]]
     # Save resulting images
+    output_image.save("mesh_src.png")
     output_image = output_image.resize((simulation_width * 5, simulation_height * 5), Image.NEAREST)
     output_image.save('Output.png')
     initial_image = initial_image.resize((simulation_width * 5, simulation_height * 5), Image.NEAREST)
     initial_image.save('Input.png')
 
 
-generate_microstructure("MC", True, False, "VN", False)
+generate_microstructure("CA", True, False, "VN", False)
