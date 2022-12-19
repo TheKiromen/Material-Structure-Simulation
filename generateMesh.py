@@ -1,6 +1,7 @@
 import os
 import shutil
 
+import microstructpy.meshing
 import numpy as np
 from matplotlib import image as mpim
 from matplotlib import pyplot as plt
@@ -152,7 +153,7 @@ fcs = [phases[region_phases[r]]['color'] for r in tmesh.element_attributes]
 # Plot the mesh
 tmesh.plot(facecolors=fcs, edgecolors='k', lw=0.2)
 
-# Configure the x and y axis
+# Configure both plot axis
 plt.axis('square')
 plt.xlim(x.min(), x.max())
 plt.ylim(y.min(), y.max())
@@ -171,3 +172,9 @@ plt.savefig(filename, bbox_inches='tight', pad_inches=0)
 
 # Copy input image
 shutil.copy(image_filename, dirs)
+
+# FIXME
+# Save data to abaqus format
+tmesh.write('from_image/abaqus_input.inp', 'abaqus', None, pmesh)
+# microstructpy.meshing.TriMesh.write(tmesh, 'from_image/abaqus_input.inp', 'abaqus')
+# tmesh.write('from_image/abaqus_input.vtk', 'vtk')
