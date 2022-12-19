@@ -292,4 +292,10 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
     initial_image.save('Input.png')
 
 
+# Arguments:
+# Type of simulation: "CA" or "MC"
+# Random nucleation sites: True/False
+# Absorbing boundary conditions: True/False
+# Neighbourhood type: "VN" or "Hex"
+# Create from empty simulation: True/False
 generate_microstructure("CA", True, True, "VN", False)
