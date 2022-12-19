@@ -269,16 +269,21 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
         return
 
     # Generate images
-    output_image = Image.new("RGB", (simulation_width, simulation_height))
+    # FIXME remove border in absorbing
+    if absorbing:
+        border_offset = 1
+    else:
+        border_offset = 0
+    output_image = Image.new("RGB", (simulation_width - (border_offset * 2), simulation_height - (border_offset * 2)))
     output_pixels = output_image.load()
-    initial_image = Image.new("RGB", (simulation_width, simulation_height))
+    initial_image = Image.new("RGB", (simulation_width - (border_offset * 2), simulation_height - (border_offset * 2)))
     initial_pixels = initial_image.load()
     # Loop through the whole image
-    for img_y in range(simulation_height):
-        for img_x in range(simulation_width):
+    for img_y in range(simulation_height - (border_offset * 2)):
+        for img_x in range(simulation_width - (border_offset * 2)):
             # Assign color to each pixel
-            output_pixels[img_x, img_y] = colors[output[img_y, img_x]]
-            initial_pixels[img_x, img_y] = colors[input_state[img_y, img_x]]
+            output_pixels[img_x, img_y] = colors[output[img_y + border_offset, img_x + border_offset]]
+            initial_pixels[img_x, img_y] = colors[input_state[img_y + border_offset, img_x + border_offset]]
     # Save resulting images
     output_image.save("mesh_src.png")
     output_image = output_image.resize((simulation_width * 5, simulation_height * 5), Image.NEAREST)
@@ -287,4 +292,4 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
     initial_image.save('Input.png')
 
 
-generate_microstructure("CA", True, False, "VN", False)
+generate_microstructure("CA", True, True, "VN", False)
