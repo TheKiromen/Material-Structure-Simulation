@@ -1,7 +1,7 @@
 
 # Material Structure Simulation 
 
-Plugin for [ABAQUS](https://solidexpert.com/programy/abaqus/) written using Python and Abaqus dialog builder. Generates grain microstructure for steel-like materials using Cellular Automata and Monte Carlo methods.
+Plugin for [ABAQUS](https://solidexpert.com/programy/abaqus/) written using Python and PySimpleGUI. Generates grain microstructure for steel-like materials using Cellular Automata and Monte Carlo methods. Then exports generated structure as a mesh for simulation purposes in Abaqus Software.
 
 ## Features
 
@@ -13,7 +13,9 @@ Plugin for [ABAQUS](https://solidexpert.com/programy/abaqus/) written using Pyth
 ## Technologies
 
 - Python
-- RSG
+- PySimpleGUI
+- Pillow
+- [MicroStructPy](https://docs.microstructpy.org/en/latest/)
 
 ## Authors
 
