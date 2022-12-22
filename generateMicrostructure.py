@@ -292,11 +292,11 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
             output_pixels[img_x, img_y] = colors[output[img_y + border_offset, img_x + border_offset]]
             initial_pixels[img_x, img_y] = colors[initial_simulation[img_y + border_offset, img_x + border_offset]]
     # Save resulting images
-    output_image.save("mesh_src.png")
-    output_image = output_image.resize((simulation_width * 5, simulation_height * 5), Image.NEAREST)
-    output_image.save('Output.png')
-    initial_image = initial_image.resize((simulation_width * 5, simulation_height * 5), Image.NEAREST)
-    initial_image.save('Input.png')
+    output_image.save("output/mesh_src.png")
+    output_image = output_image.resize((simulation_width * 3, simulation_height * 3), Image.NEAREST)
+    output_image.save('output/Output.png')
+    initial_image = initial_image.resize((simulation_width * 3, simulation_height * 3), Image.NEAREST)
+    initial_image.save('output/Input.png')
 
 
 # Arguments:
@@ -305,4 +305,4 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
 # Absorbing boundary conditions: True/False
 # Neighbourhood type: "VN" or "Hex"
 # Create from empty simulation: True/False
-generate_microstructure("CA", False, True, "Hex", False)
+generate_microstructure("CA", True, True, "Hex", False)

@@ -1,10 +1,25 @@
 import PySimpleGUI as gui
 
+# Set app theme
+gui.theme('dark grey 11')
+
 # Define the window's contents
-layout = [[gui.Text("What's your name?")],
-          [gui.Input(key='-INPUT-')],
-          [gui.Text(size=(40, 1), key='-OUTPUT-')],
-          [gui.Button('Ok'), gui.Button('Quit')]]
+layout = [
+        [gui.Text("Initial state                                                          "),
+         gui.Text("Finished microstructure                                        "),
+         gui.Text("Generated Mesh")],
+        [gui.Image(r'blank.png'), gui.Image(r'blank.png'), gui.Image(r'blank.png')],
+        [gui.HSeparator()],
+        ]
+
+# TODO
+# Add input fields:
+# Simulation type - combo box
+# If "MC" selected, activate check box for "Generate from empty simulation"
+# Neighbourhood type - combo box
+# Checkboxes for randomNucleationSites and absorbing boundary condition
+# Sliders for NumberOfNucleationSites and NumberOfGrainTypes
+
 
 # Create the window
 window = gui.Window('Window Title', layout)

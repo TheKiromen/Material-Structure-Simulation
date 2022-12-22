@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 import microstructpy as msp
 
 # Read in image
-image_basename = 'mesh_src.png'
+image_basename = 'output/mesh_src.png'
 image_path = os.path.dirname(__file__)
 # Create full image path
 image_filename = os.path.join(image_path, image_basename)
@@ -160,7 +160,7 @@ plt.ylim(y.min(), y.max())
 plt.axis('off')
 
 # Save plot and copy input file
-plot_basename = 'from_image/trimesh.png'
+plot_basename = 'output/mesh.png'
 file_dir = os.path.dirname(os.path.realpath(__file__))
 # Get final image path
 filename = os.path.join(file_dir, plot_basename)
@@ -171,10 +171,10 @@ if not os.path.exists(dirs):
 plt.savefig(filename, bbox_inches='tight', pad_inches=0)
 
 # Copy input image
-shutil.copy(image_filename, dirs)
+# shutil.copy(image_filename, dirs)
 
 # FIXME
 # Save data to abaqus format
-tmesh.write('from_image/abaqus_input.inp', 'abaqus', None, pmesh)
-# microstructpy.meshing.TriMesh.write(tmesh, 'from_image/abaqus_input.inp', 'abaqus')
-# tmesh.write('from_image/abaqus_input.vtk', 'vtk')
+tmesh.write('output/abaqus_input.inp', 'abaqus', None, pmesh)
+# microstructpy.meshing.TriMesh.write(tmesh, 'output/abaqus_input.inp', 'abaqus')
+# tmesh.write('output/abaqus_input.vtk', 'vtk')
