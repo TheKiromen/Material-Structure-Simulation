@@ -8,7 +8,8 @@ import numpy as np
 global initial_simulation
 
 
-def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neighbourhood_type, from_empty_simulation):
+def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neighbourhood_type, from_empty_simulation,
+                            number_of_nucleation_sites=50, number_of_grain_types=5, step_limit=50):
     # Image color schema in RGB format
     colors = [(0, 0, 0), (255, 0, 0), (0, 255, 0), (255, 255, 0), (0, 255, 255),
               (0, 0, 255), (255, 0, 255), (125, 125, 255), (125, 255, 125), (255, 125, 125)]
@@ -17,13 +18,13 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
     simulation_width = 100
     simulation_height = 100
     # Simulation step limit for Monte Carlo method
-    step_limit = 30
+    # step_limit = 30
     # Constant for cell change probability
     kt = 0.2
     # How many grain types there are
-    number_of_grain_types = 5
+    # number_of_grain_types = 5
     # How many nucleation sites (default 3% of whole simulation)
-    number_of_nucleation_sites = int((simulation_width * simulation_height * 0.01))
+    # number_of_nucleation_sites = int((simulation_width * simulation_height * 0.01))
     # Spacing for periodic generation
     seed_step = int(simulation_height * 0.2)
     # Determine if random nucleation sites should be used
@@ -305,4 +306,4 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
 # Absorbing boundary conditions: True/False
 # Neighbourhood type: "VN" or "Hex"
 # Create from empty simulation: True/False
-generate_microstructure("CA", True, True, "Hex", False)
+generate_microstructure("MC", True, True, "Hex", True)

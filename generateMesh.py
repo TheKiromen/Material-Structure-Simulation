@@ -1,8 +1,8 @@
 import os
-import shutil
 
 import microstructpy.meshing
 import numpy as np
+from PIL import Image
 from matplotlib import image as mpim
 from matplotlib import pyplot as plt
 
@@ -167,8 +167,14 @@ filename = os.path.join(file_dir, plot_basename)
 dirs = os.path.dirname(filename)
 if not os.path.exists(dirs):
     os.makedirs(dirs)
+
 # Save the plot image
 plt.savefig(filename, bbox_inches='tight', pad_inches=0)
+
+# Resize mesh image to fit GUI
+mesh_img = Image.open(r"output/mesh.png")
+mesh_img = mesh_img.resize((300, 300))
+mesh_img.save(r"output/mesh.png")
 
 # Copy input image
 # shutil.copy(image_filename, dirs)
