@@ -261,6 +261,7 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
     # Cellular Automata
     if algorithm == "CA":
         output = cellular_automata()
+        input_state = np.copy(output)
     # Monte Carlo
     elif algorithm == "MC":
         # Determine if there should be input to Monte Carlo method
@@ -307,3 +308,4 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
 # Neighbourhood type: "VN" or "Hex"
 # Create from empty simulation: True/False
 # generate_microstructure("MC", True, True, "Hex", True)
+
