@@ -1,13 +1,15 @@
 import itertools
-
-from PIL import Image
 # from abaqus import *
 # from abaqusConstants import *
 # from driverUtils import *
+from PIL import Image
 import numpy as np
 
+global initial_simulation
 
-def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neighbourhood_type, from_empty_simulation):
+
+def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neighbourhood_type, from_empty_simulation,
+                            number_of_nucleation_sites=50, number_of_grain_types=5, step_limit=50):
     # Image color schema in RGB format
     colors = [(0, 0, 0), (255, 0, 0), (0, 255, 0), (255, 255, 0), (0, 255, 255),
               (0, 0, 255), (255, 0, 255), (125, 125, 255), (125, 255, 125), (255, 125, 125)]
@@ -16,16 +18,15 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
     simulation_width = 100
     simulation_height = 100
     # Simulation step limit for Monte Carlo method
-    step_limit = 10
+    # step_limit = 30
     # Constant for cell change probability
     kt = 0.2
     # How many grain types there are
-    number_of_grain_types = 2
+    # number_of_grain_types = 5
     # How many nucleation sites (default 3% of whole simulation)
-    number_of_nucleation_sites = int((simulation_width * simulation_height * 0.01))
+    # number_of_nucleation_sites = int((simulation_width * simulation_height * 0.01))
     # Spacing for periodic generation
-    x_step = int(simulation_width * 0.1)
-    y_step = int(simulation_height * 0.2)
+    seed_step = int(simulation_height * 0.2)
     # Determine if random nucleation sites should be used
     random_nucleation_sites = random_nucleation_sites
     # Determine if edges should be absorbing or periodic
@@ -36,6 +37,8 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
     von_neuman = [[(0, -1), (1, 0), (0, 1), (-1, 0)]]
     hexagonal = [[(0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1)],
                  [(-1, -1), (0, -1), (-1, 0), (1, 0), (0, 1), (1, 1)]]
+    global initial_simulation
+    initial_simulation = np.zeros((simulation_height, simulation_width), np.int8)
 
     def cellular_automata():
         # 1. Simulation setup
@@ -74,12 +77,16 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
 
         # Generate periodic nucleation sites
         else:
-            for y in range(1, simulation_height - 1, y_step):
-                for x in range(1, simulation_width, x_step):
+            for y in range(1, simulation_height - 1, seed_step):
+                for x in range(1, simulation_width, seed_step):
                     current_state[y, x] = np.random.randint(1, number_of_grain_types + 1)
 
         # Copy current state to temporary array
         next_state = np.copy(current_state)
+        # Save input state
+        global initial_simulation
+        initial_simulation = np.copy(current_state)
+
         # 3. Go through eth simulation loop until all cells are filled
         # Determine the end goal
         if absorbing:
@@ -187,6 +194,9 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
 
         # Copy current state to temporary array
         next_state = np.copy(current_state)
+        # Save input state
+        global initial_simulation
+        initial_simulation = np.copy(current_state)
 
         # Go through the simulation
         for step in range(step_limit):
@@ -269,22 +279,33 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
         return
 
     # Generate images
-    output_image = Image.new("RGB", (simulation_width, simulation_height))
+    if absorbing:
+        border_offset = 1
+    else:
+        border_offset = 0
+    output_image = Image.new("RGB", (simulation_width - (border_offset * 2), simulation_height - (border_offset * 2)))
     output_pixels = output_image.load()
-    initial_image = Image.new("RGB", (simulation_width, simulation_height))
+    initial_image = Image.new("RGB", (simulation_width - (border_offset * 2), simulation_height - (border_offset * 2)))
     initial_pixels = initial_image.load()
     # Loop through the whole image
-    for img_y in range(simulation_height):
-        for img_x in range(simulation_width):
+    for img_y in range(simulation_height - (border_offset * 2)):
+        for img_x in range(simulation_width - (border_offset * 2)):
             # Assign color to each pixel
-            output_pixels[img_x, img_y] = colors[output[img_y, img_x]]
-            initial_pixels[img_x, img_y] = colors[input_state[img_y, img_x]]
+            output_pixels[img_x, img_y] = colors[output[img_y + border_offset, img_x + border_offset]]
+            initial_pixels[img_x, img_y] = colors[initial_simulation[img_y + border_offset, img_x + border_offset]]
     # Save resulting images
-    output_image.save("mesh_src.png")
-    output_image = output_image.resize((simulation_width * 5, simulation_height * 5), Image.NEAREST)
-    output_image.save('Output.png')
-    initial_image = initial_image.resize((simulation_width * 5, simulation_height * 5), Image.NEAREST)
-    initial_image.save('Input.png')
+    output_image.save("output/mesh_src.png")
+    output_image = output_image.resize((simulation_width * 3, simulation_height * 3), Image.NEAREST)
+    output_image.save('output/Output.png')
+    initial_image = initial_image.resize((simulation_width * 3, simulation_height * 3), Image.NEAREST)
+    initial_image.save('output/Input.png')
 
 
-generate_microstructure("CA", True, False, "VN", False)
+# Arguments:
+# Type of simulation: "CA" or "MC"
+# Random nucleation sites: True/False
+# Absorbing boundary conditions: True/False
+# Neighbourhood type: "VN" or "Hex"
+# Create from empty simulation: True/False
+# generate_microstructure("MC", True, True, "Hex", True)
+
