@@ -306,4 +306,4 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
 # Absorbing boundary conditions: True/False
 # Neighbourhood type: "VN" or "Hex"
 # Create from empty simulation: True/False
-generate_microstructure("MC", True, True, "Hex", True)
+# generate_microstructure("MC", True, True, "Hex", True)
