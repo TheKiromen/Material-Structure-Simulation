@@ -155,6 +155,9 @@ def generateMesh():
     # Plot the mesh
     tmesh.plot(facecolors=fcs, edgecolors='k', lw=0.2)
 
+    # Plot the polymesh
+    # pmesh.plot(edgecolors='k')
+
     # Configure both plot axis
     plt.axis('square')
     plt.xlim(x.min(), x.max())
