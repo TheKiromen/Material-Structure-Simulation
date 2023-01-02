@@ -186,6 +186,7 @@ def generateMesh():
 
     # FIXME
     # Save data to abaqus format
-    tmesh.write('output/abaqus_input.inp', 'abaqus', None, pmesh)
+    filename = os.path.join(file_dir, 'output/abaqus_input.inp')
+    tmesh.write(filename, 'abaqus', None, pmesh)
     # microstructpy.meshing.TriMesh.write(tmesh, 'output/abaqus_input.inp', 'abaqus')
     # tmesh.write('output/abaqus_input.vtk', 'vtk')
