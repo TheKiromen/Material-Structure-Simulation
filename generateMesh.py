@@ -181,12 +181,8 @@ def generateMesh():
     mesh_img = mesh_img.resize((300, 300))
     mesh_img.save(r"output/mesh.png")
 
-    # Copy input image
-    # shutil.copy(image_filename, dirs)
-
-    # FIXME
     # Save data to abaqus format
     filename = os.path.join(file_dir, 'output/abaqus_input.inp')
     tmesh.write(filename, 'abaqus', None, pmesh)
-    # microstructpy.meshing.TriMesh.write(tmesh, 'output/abaqus_input.inp', 'abaqus')
-    # tmesh.write('output/abaqus_input.vtk', 'vtk')
+
+    # TODO load the file, delete ext surfaces, override the file
