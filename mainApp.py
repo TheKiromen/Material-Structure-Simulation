@@ -1,6 +1,6 @@
 import os
 from threading import Thread
-from generateMesh import generateMesh
+# from generateMesh import generateMesh
 from generateMicrostructure import generate_microstructure
 import PySimpleGUI as gui
 
@@ -20,7 +20,7 @@ def meshGeneration():
     # Lock the window
     window.disable()
     # Generate the mesh
-    generateMesh()
+    # generateMesh()
     # Change the images
     window['mesh_img'].update(filename='output/mesh.png')
     # Finish thread execution
@@ -61,7 +61,7 @@ def microstructureGeneration():
     # Change images
     window['input_img'].update(filename='output/Input.png')
     window['output_img'].update(filename='output/Output.png')
-    window['mesh_button'].update(disabled=False)
+    # window['mesh_button'].update(disabled=False)
     
     # Finish thread execution
     window.write_event_value('Finished', "Microstructure")
