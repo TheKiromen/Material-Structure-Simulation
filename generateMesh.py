@@ -18,29 +18,37 @@ def generateMesh():
     # Read the image
     image = mpim.imread(image_filename)
     # Get image brightness values from Red channel
-    im_brightness = image[:, :, 0]
+    # im_brightness = image[:, :, 0]
+
+    # Get color channels from image
+    red = image[:, :, 0]
+    green = image[:, :, 1]
+    blue = image[:, :, 2]
 
     # Binary thresholds
-    br_bins = [0.00, 0.50, 1.00]
+    # br_bins = [0.00, 0.50, 1.00]
 
     # Create empty copy of image
-    bin_nums = np.zeros_like(im_brightness, dtype='int')
-    # Bin the pixels
-    for i in range(len(br_bins) - 1):
-        # Get upper and lower bounds
-        lb = br_bins[i]
-        ub = br_bins[i + 1]
-        # Check pixel value
-        mask = np.logical_and(im_brightness >= lb, im_brightness <= ub)
-        # Set pixel to 0 or 1
-        bin_nums[mask] = i
+    # bin_nums = np.zeros_like(im_brightness, dtype='int')
+    # # Bin the pixels
+    # for i in range(len(br_bins) - 1):
+    #     # Get upper and lower bounds
+    #     lb = br_bins[i]
+    #     ub = br_bins[i + 1]
+    #     # Check pixel value
+    #     mask = np.logical_and(im_brightness >= lb, im_brightness <= ub)
+    #     # Set pixel to 0 or 1
+    #     bin_nums[mask] = i
 
     # Define the phases
-    phases = [{'color': c, 'material_type': 'amorphous'} for c in ('C0', 'C1')]
+    phases = [{'color': c, 'material_type': 'amorphous'} for c in (
+        'red', 'lime', 'blue', 'yellow', 'magenta', 'cyan', 'lightsteelblue', 'palegreen', 'salmon'
+    )]
 
     # Create the polygon mesh
     # Get image dimensions
-    m, n = bin_nums.shape
+    # m, n = bin_nums.shape
+    m, n = red.shape
     # Create x component
     x = np.arange(n + 1).astype('float')
     # Create y component
@@ -130,7 +138,41 @@ def generateMesh():
             # Add region to list
             regions[k_regions] = region
             # Assign phase to the region
-            region_phases[k_regions] = bin_nums[i, j]
+            # region_phases[k_regions] = bin_nums[i, j]
+            # Check red channel
+            if red[i, j] == 1:
+                # Yellow
+                if green[i, j] == 1:
+                    region_phases[k_regions] = 3
+                # Magenta
+                elif blue[i, j] == 1:
+                    region_phases[k_regions] = 4
+                # Salmon
+                elif green[i, j] > 0 or blue[i, j] > 0:
+                    region_phases[k_regions] = 8
+                # Pure Red
+                else:
+                    region_phases[k_regions] = 0
+            # Check green channel
+            elif green[i, j] == 1:
+                # Cyan
+                if blue[i, j] == 1:
+                    region_phases[k_regions] = 5
+                # Palegreen
+                elif red[i, j] > 0 or blue[i, j] > 0:
+                    region_phases[k_regions] = 7
+                # Pure Green
+                else:
+                    region_phases[k_regions] = 1
+            # Check blue channel
+            elif blue[i, j] == 1:
+                # Lightsteelblue
+                if green[i, j] > 0 or red[i, j] > 0:
+                    region_phases[k_regions] = 6
+                # Pure Blue
+                else:
+                    region_phases[k_regions] = 2
+
             # Increase current number of regions
             k_regions += 1
 

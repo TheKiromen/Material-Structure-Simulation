@@ -11,8 +11,8 @@ global initial_simulation
 def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neighbourhood_type, from_empty_simulation,
                             number_of_nucleation_sites=50, number_of_grain_types=5, step_limit=50):
     # Image color schema in RGB format
-    colors = [(0, 0, 0), (255, 0, 0), (0, 255, 0), (255, 255, 0), (0, 255, 255),
-              (0, 0, 255), (255, 0, 255), (125, 125, 255), (125, 255, 125), (255, 125, 125)]
+    colors = [(0, 0, 0), (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255),
+              (255, 0, 255), (125, 125, 255), (125, 255, 125), (255, 125, 125)]
     # Variables
     # Simulation size: 300x300
     simulation_width = 100
@@ -300,7 +300,6 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
     initial_image = initial_image.resize((simulation_width * 3, simulation_height * 3), Image.NEAREST)
     initial_image.save('output/Input.png')
 
-
 # Arguments:
 # Type of simulation: "CA" or "MC"
 # Random nucleation sites: True/False
@@ -308,4 +307,3 @@ def generate_microstructure(algorithm, random_nucleation_sites, absorbing, neigh
 # Neighbourhood type: "VN" or "Hex"
 # Create from empty simulation: True/False
 # generate_microstructure("MC", True, True, "Hex", True)
-
