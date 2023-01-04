@@ -185,4 +185,15 @@ def generateMesh():
     filename = os.path.join(file_dir, 'output/abaqus_input.inp')
     tmesh.write(filename, 'abaqus', None, pmesh)
 
-    # TODO load the file, delete ext surfaces, override the file
+    # Load contents of input file
+    with open(filename, "r") as f:
+        data = f.readlines()
+
+    # Remove clutter data
+    start_index = data.index("*Surface, name=Ext-Surface-4, combine=union\n")
+    end_index = data.index("*End Part\n")
+    data = data[:start_index] + data[end_index:]
+
+    # Override the file
+    with open(filename, "w") as f:
+        f.writelines(data)
