@@ -5,6 +5,7 @@ import numpy as np
 # First one is black, it signifies no grain at all
 colors = [(0, 0, 0), (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255),
           (255, 0, 255), (125, 125, 255), (125, 255, 125), (255, 125, 125)]
+# Data from all grains in the image
 global_contours = []
 global_hierarchy = []
 
@@ -40,13 +41,29 @@ i = 0
 # Draw all contours onto the image
 for contour in global_contours:
     for c in contour:
+        # Label the image
         rect = cv.minAreaRect(c)[0]
         cx = int(rect[0])
         cy = int(rect[1])
-        cv.putText(labeled_image, text=str(i), org=(cx-7, cy+5),
-                   fontFace=cv.FONT_HERSHEY_SIMPLEX, fontScale=0.3, color=(0, 0, 0),
-                   thickness=1, lineType=cv.LINE_AA)
+        cv.putText(labeled_image, text=str(i), org=(cx-7, cy+5), fontFace=cv.FONT_HERSHEY_SIMPLEX, fontScale=0.3,
+                   color=(0, 0, 0), thickness=1, lineType=cv.LINE_AA)
         i += 1
+
+        # Calculate grain parameters
+        # W1 
+        # W2
+        # W3
+        # W4
+        # W5
+        # W6
+        # W7
+        # W8
+        # W9
+        # W10
+
+        # Save all params as csv?
+
+    # Draw contours for preview
     # cv.drawContours(result, contour, -1, (255, 255, 255), 1)
 
 # Save the labeled image
