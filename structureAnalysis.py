@@ -12,6 +12,8 @@ global_hierarchy = []
 image = cv.imread(r'output/mesh_src.png')
 image = cv.resize(image, (700, 700), interpolation=cv.INTER_NEAREST_EXACT)
 
+labeled_image = image.copy()
+
 for i in range(1, 10):
     # Create color mask
     mask = cv.inRange(image, colors[i], colors[i])
@@ -29,16 +31,31 @@ for i in range(1, 10):
     global_hierarchy.append(hierarchy)
 
     # Display single colored grains
-    cv.imshow("Window", masked_img)
-    cv.waitKey(0)
+    # cv.imshow("Window", masked_img)
+    # cv.waitKey(0)
 
 # Create empty image
 result = np.zeros(image.shape)
+i = 0
 # Draw all contours onto the image
 for contour in global_contours:
-    cv.drawContours(result, contour, -1, (255, 255, 255), 1)
-# Display the result
-cv.imshow("Window", result)
+    for c in contour:
+        rect = cv.minAreaRect(c)[0]
+        cx = int(rect[0])
+        cy = int(rect[1])
+        cv.putText(labeled_image, text=str(i), org=(cx-7, cy+5),
+                   fontFace=cv.FONT_HERSHEY_SIMPLEX, fontScale=0.3, color=(0, 0, 0),
+                   thickness=1, lineType=cv.LINE_AA)
+        i += 1
+    # cv.drawContours(result, contour, -1, (255, 255, 255), 1)
 
+# Save the labeled image
+cv.imwrite(r'output/labeled_image.png', labeled_image)
+
+# Display the result
+# cv.imshow("Window", result)
+cv.imshow("Window", labeled_image)
+
+# Close the preview
 cv.waitKey(0)
 cv.destroyAllWindows()
