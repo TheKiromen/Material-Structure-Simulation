@@ -1,3 +1,5 @@
+import csv
+
 import cv2 as cv
 import numpy as np
 
@@ -12,6 +14,11 @@ global_hierarchy = []
 # Load the image
 image = cv.imread(r'output/mesh_src.png')
 image = cv.resize(image, (700, 700), interpolation=cv.INTER_NEAREST_EXACT)
+
+# Create csv file for data storage
+f = open(r'output/data.csv', 'w', encoding="UTF-8", newline='')
+writer = csv.writer(f)
+writer.writerow(["ID", "W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8", "W9", "W10"])
 
 labeled_image = image.copy()
 
@@ -45,9 +52,11 @@ for contour in global_contours:
         rect = cv.minAreaRect(c)[0]
         cx = int(rect[0])
         cy = int(rect[1])
-        cv.putText(labeled_image, text=str(i), org=(cx-7, cy+5), fontFace=cv.FONT_HERSHEY_SIMPLEX, fontScale=0.3,
+        cv.putText(labeled_image, text=str(i), org=(cx - 7, cy + 5), fontFace=cv.FONT_HERSHEY_SIMPLEX, fontScale=0.3,
                    color=(0, 0, 0), thickness=1, lineType=cv.LINE_AA)
         i += 1
+
+        params = [i, i*2, i*4]
 
         # Calculate grain parameters
         # W1 
@@ -61,13 +70,17 @@ for contour in global_contours:
         # W9
         # W10
 
-        # Save all params as csv?
+        # Save all params as CSV
+        writer.writerow(params)
 
     # Draw contours for preview
     # cv.drawContours(result, contour, -1, (255, 255, 255), 1)
 
 # Save the labeled image
 cv.imwrite(r'output/labeled_image.png', labeled_image)
+
+# Close and save csv data file
+f.close()
 
 # Display the result
 # cv.imshow("Window", result)
