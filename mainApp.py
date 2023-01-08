@@ -2,8 +2,8 @@ import os
 from threading import Thread
 from generateMesh import generateMesh
 from generateMicrostructure import generate_microstructure
+from structureAnalysis import calculateGrainParameters
 import PySimpleGUI as gui
-
 
 # Set app theme
 gui.theme('dark grey 11')
@@ -62,9 +62,19 @@ def microstructureGeneration():
     window['input_img'].update(filename='output/Input.png')
     window['output_img'].update(filename='output/Output.png')
     window['mesh_button'].update(disabled=False)
-    
+    window['parameters_button'].update(disabled=False)
+
     # Finish thread execution
     window.write_event_value('Finished', "Microstructure")
+
+
+def structureAnalysis():
+    # Lock the window
+    window.disable()
+    # Run Analysis
+    calculateGrainParameters()
+    # Finish thread execution
+    window.write_event_value('Finished', "Parameters")
 
 
 # Check for existing data files
@@ -125,6 +135,9 @@ layout = [
                 pad=((10, 10), (0, 20)), font=('Arial', 12, 'bold')),
      gui.Button("Generate mesh", key="mesh_button",
                 disabled=not (os.path.exists("output/Input.png") & os.path.exists("output/Output.png")),
+                pad=((10, 10), (0, 20)), font=('Arial', 12, 'bold')),
+     gui.Button("Calculate parameters", key="parameters_button",
+                disabled=not (os.path.exists("output/Input.png") & os.path.exists("output/Output.png")),
                 pad=((10, 10), (0, 20)), font=('Arial', 12, 'bold'))]
 ]
 
@@ -145,6 +158,10 @@ while True:
     elif event == 'mesh_button':
         tmp = popup("Processing...")
         T = Thread(target=meshGeneration).start()
+    # Calculate microstructure parameters
+    elif event == 'parameters_button':
+        tmp = popup("Processing...")
+        T = Thread(target=structureAnalysis).start()
     # Change options visibility
     elif event == 'sim_type':
         if values['sim_type'] == "Monte Carlo":
