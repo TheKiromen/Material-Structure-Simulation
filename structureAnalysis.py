@@ -17,8 +17,9 @@ image = cv.resize(image, (700, 700), interpolation=cv.INTER_NEAREST_EXACT)
 
 # Create csv file for data storage
 f = open(r'output/data.csv', 'w', encoding="UTF-8", newline='')
+headers = ["ID", "W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8", "W9", "W10"]
 writer = csv.writer(f)
-writer.writerow(["ID", "W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8", "W9", "W10"])
+writer.writerow(headers)
 
 labeled_image = image.copy()
 
@@ -43,38 +44,68 @@ for i in range(1, 10):
     # cv.waitKey(0)
 
 # Create empty image
-result = np.zeros(image.shape)
+# result = np.zeros(image.shape)
 i = 0
 # Draw all contours onto the image
 for contour in global_contours:
+    # # Draw contours for preview
+    # cv.drawContours(result, contour, -1, (255, 255, 255), 1)
+    # cv.imshow("Window", result)
+    # cv.waitKey(0)
     for c in contour:
         # Label the image
-        rect = cv.minAreaRect(c)[0]
-        cx = int(rect[0])
-        cy = int(rect[1])
+        rect = cv.minAreaRect(c)
+        cx = int(rect[0][0])
+        cy = int(rect[0][1])
+        w = rect[1][1]
+        h = rect[1][0]
         cv.putText(labeled_image, text=str(i), org=(cx - 7, cy + 5), fontFace=cv.FONT_HERSHEY_SIMPLEX, fontScale=0.3,
                    color=(0, 0, 0), thickness=1, lineType=cv.LINE_AA)
-        i += 1
-
-        params = [i, i*2, i*4]
 
         # Calculate grain parameters
-        # W1 
-        # W2
-        # W3
-        # W4
-        # W5
-        # W6
-        # W7
-        # W8
-        # W9
-        # W10
+        # ID
+        ID = i
 
+        # W1
+        area = cv.contourArea(c)
+        W1 = 2 * np.sqrt(area/np.pi)
+
+        # W2
+        perimeter = cv.arcLength(c, True)
+        W2 = perimeter / np.pi
+
+        # W3
+        W3 = (perimeter / (2 * np.sqrt(np.pi * area))) - 1
+
+        # W4
+        W4 = 0.0
+
+        # W5
+        W5 = 0.0
+
+        # W6
+        W6 = 0.0
+
+        # W7
+        W7 = 0.0
+
+        # W8
+        maxDim = h if h > w else w
+        W8 = maxDim / perimeter
+
+        # W9
+        W9 = (2 * np.sqrt(np.pi * area)) / perimeter
+
+        # W10
+        W10 = h / w
+
+        params = [ID, W1, W2, W3, W4, W5, W6, W7, W8, W9, W10]
         # Save all params as CSV
         writer.writerow(params)
 
-    # Draw contours for preview
-    # cv.drawContours(result, contour, -1, (255, 255, 255), 1)
+        # Increase the counter
+        i += 1
+
 
 # Save the labeled image
 cv.imwrite(r'output/labeled_image.png', labeled_image)
@@ -83,9 +114,7 @@ cv.imwrite(r'output/labeled_image.png', labeled_image)
 f.close()
 
 # Display the result
-# cv.imshow("Window", result)
 cv.imshow("Window", labeled_image)
-
 # Close the preview
 cv.waitKey(0)
 cv.destroyAllWindows()
