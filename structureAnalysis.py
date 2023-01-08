@@ -12,11 +12,11 @@ def calculateGrainParameters():
               (255, 0, 255), (125, 125, 255), (125, 255, 125), (255, 125, 125)]
     # Data from all grains in the image
     global_contours = []
+    global_contours_for_labeling = []
     global_hierarchy = []
 
     # Load the image
     image = cv.imread(r'output/mesh_src.png')
-    image = cv.resize(image, (700, 700), interpolation=cv.INTER_NEAREST_EXACT)
 
     # Create csv file for data storage
     f = open(r'output/data.csv', 'w', encoding="UTF-8", newline='')
@@ -24,47 +24,69 @@ def calculateGrainParameters():
     writer = csv.writer(f)
     writer.writerow(headers)
 
-    labeled_image = image.copy()
+    # Create larger image with grain labels
+    labeled_image = cv.resize(image, (700, 700), interpolation=cv.INTER_NEAREST_EXACT)
 
     for i in range(1, 10):
         # Create color mask
         mask = cv.inRange(image, colors[i], colors[i])
+        mask_labeled = cv.inRange(labeled_image, colors[i], colors[i])
         # Apply the mask
         masked_img = cv.bitwise_and(image, image, mask=mask)
-
+        masked_labeled_img = cv.bitwise_and(labeled_image, labeled_image, mask=mask_labeled)
         # Convert image to gray
         grayscale = cv.cvtColor(masked_img, cv.COLOR_BGR2GRAY)
+        grayscale_labeled = cv.cvtColor(masked_labeled_img, cv.COLOR_BGR2GRAY)
         # Bin the image
         flag, binned = cv.threshold(grayscale, 10, 255, cv.THRESH_BINARY)
+        flag, binned_labeled = cv.threshold(grayscale_labeled, 10, 255, cv.THRESH_BINARY)
         # Find contours from single channel
         color_contours, hierarchy = cv.findContours(binned, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        contour_for_labeling, tmp = cv.findContours(binned_labeled, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         # Save found contours
         global_contours.append(color_contours)
+        global_contours_for_labeling.append(contour_for_labeling)
         global_hierarchy.append(hierarchy)
 
         # Display single colored grains
-        # cv.imshow("Window", masked_img)
+        # cv.imshow("Window", masked_labeled_img)
         # cv.waitKey(0)
 
-    # Create empty image
-    # result = np.zeros(image.shape)
+    # Create empty image for drawing contours
+    # result = np.zeros(labeled_image.shape)
+
+    # Create labeled image
+    # Initialize grain counter
     i = 0
-    # Loop through the contours
-    for contour in global_contours:
-        # # Draw contours for preview
+    for contour in global_contours_for_labeling:
+        # Draw contours for preview
         # cv.drawContours(result, contour, -1, (255, 255, 255), 1)
         # cv.imshow("Window", result)
         # cv.waitKey(0)
+        # For each contour, calculate where to draw the label
         for c in contour:
-            # Label the image
+            # Get minimal bounding rectangle
             rect = cv.minAreaRect(c)
+            # Get the center of rectangle
             cx = int(rect[0][0])
             cy = int(rect[0][1])
-            w = rect[1][1]
-            h = rect[1][0]
+            # Add label to the image
             cv.putText(labeled_image, text=str(i), org=(cx - 7, cy + 5), fontFace=cv.FONT_HERSHEY_SIMPLEX,
                        fontScale=0.3,
                        color=(0, 0, 0), thickness=1, lineType=cv.LINE_AA)
+            # Increment the counter
+            i += 1
+
+    # Reset the grain counter
+    i = 0
+    # Loop through the contours
+    for contour in global_contours:
+        # Contours hold [x, y] values
+        for c in contour:
+            # Get contour dimensions
+            rect = cv.minAreaRect(c)
+            w = rect[1][1]
+            h = rect[1][0]
 
             # Calculate grain parameters
             # ID
@@ -78,7 +100,7 @@ def calculateGrainParameters():
             # Get list of points matching contour
             points = np.where(temp == 255)
             # Combine X and Y coordinates
-            contour_insides = list(zip(points[0], points[1]))
+            contour_insides = list(zip(points[1], points[0]))
             # Remove duplicate pixels
             contour_insides = list(dict.fromkeys(contour_insides))
 
@@ -108,7 +130,6 @@ def calculateGrainParameters():
             W4 = area / (np.sqrt(2 * np.pi * sum_dist_sqr))
 
             # W5
-            # Takes really long to calculate, almost a minute for 100x100 image
             min_dist_sum = 0.0
             for inner_pixel in contour_insides:
                 distances = []
@@ -153,7 +174,7 @@ def calculateGrainParameters():
             # Save all params as CSV
             writer.writerow(params)
 
-            # Increase the counter
+            # Increment the counter
             i += 1
 
     # Save the labeled image
