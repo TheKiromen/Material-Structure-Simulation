@@ -31,7 +31,7 @@ using OpenCV for image segmentation and processing. All outputs from the program
 
 ![App Screenshot](Screenshots/GUI.png)
 ![App Screenshot](Screenshots/labeled_image.png)
-![App Screenshot](Screenshots/Data.PNG)
+![App Screenshot](Screenshots/Data.png)
 ![App Screenshot](Screenshots/final_mesh.png)
 
 
