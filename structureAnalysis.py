@@ -87,6 +87,10 @@ def calculateGrainParameters():
             rect = cv.minAreaRect(c)
             w = rect[1][1]
             h = rect[1][0]
+            if w == 0:
+                w = 1
+            if h == 0:
+                h = 1
 
             # Calculate grain parameters
             # ID
@@ -106,10 +110,14 @@ def calculateGrainParameters():
 
             # W1
             area = cv.contourArea(c)
+            if area == 0:
+                area = 1
             W1 = 2 * np.sqrt(area / np.pi)
 
             # W2
             perimeter = cv.arcLength(c, True)
+            if perimeter == 0:
+                perimeter = 1
             W2 = perimeter / np.pi
 
             # W3
@@ -118,6 +126,8 @@ def calculateGrainParameters():
             # W4
             # Calculate center of mass
             moments = cv.moments(c)
+            if moments["m00"] == 0:
+                moments["m00"] = 1
             center_x = int(moments["m10"] / moments["m00"])
             center_y = int(moments["m01"] / moments["m00"])
             # Save center of mass
@@ -136,6 +146,8 @@ def calculateGrainParameters():
                 for contour_pixel in c:
                     distances.append(math.dist(contour_pixel[0], inner_pixel))
                 min_dist_sum += np.amin(distances)
+            if min_dist_sum == 0:
+                min_dist_sum = 1
             W5 = ((area * area * area) / (min_dist_sum * min_dist_sum))
 
             # W6
